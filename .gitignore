@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+
+# Never vendor local SDK content.
+SDK/
+Wwise*/
+*.lib
+*.dll
+*.so
+*.dylib
