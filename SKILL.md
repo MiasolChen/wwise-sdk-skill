@@ -34,11 +34,11 @@ any other network retrieval method for that URL, even if one is available.
 Do not try the website first and fall back to local content only after it
 fails. `resolve-url` and the installed SDK Help are the primary route.
 
-After resolving the URL, inspect the matching local page with `search --area
-help --glob "PAGE.html"`. If local resolution fails, report the missing local
-SDK or Help package and the URL/version information that could be parsed. Do
-not fetch the website as a fallback and do not reconstruct its content from
-memory.
+After resolving the URL, `resolve-url` prints the exact `search` command for the
+matching local page. Run that command to read the page. If local resolution
+fails, report the missing local SDK or Help package and the URL/version
+information that could be parsed. Do not fetch the website as a fallback and do
+not reconstruct its content from memory.
 
 ### Non-Documentation Audiokinetic URLs
 
@@ -106,7 +106,9 @@ the Wwise SDK, and installing the skill does not install it.
 
 If no local SDK can be found, tell the user to open Wwise Launcher, install or
 modify the desired Wwise version, and include its SDK component. Then ask them
-to add the installed SDK path to `wwise-sdk.config.json`. Do not proceed by
+to copy `wwise-sdk.config.example.json` to `wwise-sdk.config.json` and add the
+installed SDK path to its `sdk_roots` array. That copy is git-ignored, so it
+keeps machine-specific paths out of version control. Do not proceed by
 guessing API details from memory.
 
 Audiokinetic does not permit automated bot searches or scraping of its
@@ -171,7 +173,9 @@ Resolve the SDK root in this order:
 
 4. Ask the user for the SDK path if discovery fails.
 
-The user must fill in the configuration file manually. Its `sdk_roots` array
+The user must fill in the configuration file manually, copying
+`wwise-sdk.config.example.json` to `wwise-sdk.config.json` first. Its
+`sdk_roots` array
 accepts SDK directories, Wwise installation directories containing `SDK`, or
 parent directories containing multiple Wwise installations. Do not use an
 environment variable for the SDK path.
@@ -222,10 +226,11 @@ The URL carries everything needed for the mapping:
 
 SDK pages live inside `SDK/Help/**/WwiseSDK-Windows.chm`. Authoring pages live
 under `Authoring/Help/Contextual Help/<language>/` or in extracted directories
-listed in `help_roots`. After resolving the page, read it with a `--glob` filter:
+listed in `help_roots`. `resolve-url` prints the ready-to-run command for the
+page it resolved; it has the shape:
 
 ```sh
-python scripts/wwise_sdk.py search "QUERY" --area help --glob "soundengine_events.html"
+python scripts/wwise_sdk.py search "QUERY" --area help --fixed --glob "soundengine_events.html"
 ```
 
 If the page is not installed locally, say so and state which Help package is
@@ -247,7 +252,8 @@ Audiokinetic URLs** above.
    define the public API contract that the selected SDK can compile against.
 3. Search `Help` for the locally installed official SDK documentation
    (`Help/*.chm` and localized variants such as `Help/zh/*.chm` on Windows)
-   with `python scripts/wwise_sdk.py search QUERY --area help`. The helper first
+   with `python scripts/wwise_sdk.py search "QUERY" --area help --fixed`. The
+   helper first
    searches configured `help_roots`, then temporarily extracts installed CHM
    files with `hh.exe`, 7-Zip, or chmlib when available. Prefer the user's
    language when multiple localized files exist. See `references/research-guide.md`
@@ -270,14 +276,29 @@ compiled, the selected version's public headers take precedence; Help explains
 documented behavior, samples demonstrate usage, and source reveals only
 version-specific implementation details.
 
+### Using `search` Correctly
+
+Two defaults decide whether a search returns the truth:
+
+- **`query` is a regular expression.** Pass `--fixed` for any literal symbol,
+  which covers almost every SDK identifier: `AK::SoundEngine`, `operator[]`,
+  `AkInitSettings*`, `AK_IMPLEMENT_PLUGIN_FACTORY`. Without `--fixed` these
+  either fail as invalid patterns or match the wrong text. Reserve bare regex
+  for deliberate patterns such as `Set(RTPCValue|State|Switch)`.
+- **`--max-results` defaults to 20 and truncates silently.** Raise it when
+  enumerating overloads, enum members, or call sites. A truncated result set
+  looks identical to a complete one, so treat hitting the limit as unfinished
+  evidence rather than a finding.
+
 Example searches:
 
 ```sh
-python scripts/wwise_sdk.py search PostEvent --area include --context 4
-python scripts/wwise_sdk.py search RegisterGameObj --area all --glob "*.h" --glob "*.cpp"
+python scripts/wwise_sdk.py search "PostEvent" --area include --fixed --context 4
+python scripts/wwise_sdk.py search "AK::SoundEngine::RegisterGameObj" --area include --fixed
 python scripts/wwise_sdk.py search "AK_InvalidParameter" --area include --fixed
-python scripts/wwise_sdk.py search "PostEvent" --area help --ignore-case
-python scripts/wwise_sdk.py search "CAkSoundEngine" --area source --glob "*.cpp"
+python scripts/wwise_sdk.py search "PostEvent" --area help --fixed --ignore-case
+python scripts/wwise_sdk.py search "CAkSoundEngine" --area source --fixed --glob "*.cpp"
+python scripts/wwise_sdk.py search "Set(RTPCValue|State|Switch)" --area include --max-results 60
 ```
 
 If the helper is unavailable, use the host's normal file search tools with the

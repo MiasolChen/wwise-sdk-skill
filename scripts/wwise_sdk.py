@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 VERSION_FILE = Path("include/AK/AkWwiseSDKVersion.h")
 CONFIG_FILE = Path(__file__).resolve().parents[1] / "wwise-sdk.config.json"
+EXAMPLE_CONFIG_FILE = CONFIG_FILE.with_suffix(".example.json")
 TEXT_SUFFIXES = {
     ".c",
     ".cc",
@@ -412,22 +413,31 @@ def compile_pattern(query: str, fixed: bool, ignore_case: bool) -> re.Pattern[st
     return re.compile(expression, re.IGNORECASE if ignore_case else 0)
 
 
+def missing_sdk_message() -> str:
+    """Explain how to supply an SDK path, pointing at the example config."""
+    if CONFIG_FILE.exists():
+        return (
+            f"No Wwise SDK found. Add its path to the sdk_roots array in "
+            f"{CONFIG_FILE}, or pass --sdk-root."
+        )
+    return (
+        f"No Wwise SDK found. Copy {EXAMPLE_CONFIG_FILE.name} to "
+        f"{CONFIG_FILE.name} in {CONFIG_FILE.parent}, add your SDK path to its "
+        f"sdk_roots array, or pass --sdk-root."
+    )
+
+
 def require_sdk(explicit: str | None) -> Path:
     roots = discover_sdk_roots(Path(explicit) if explicit else None)
     if not roots:
-        raise RuntimeError(
-            f"No Wwise SDK found. Add its path to {CONFIG_FILE} or pass --sdk-root."
-        )
+        raise RuntimeError(missing_sdk_message())
     return roots[0]
 
 
 def command_locate(args: argparse.Namespace) -> int:
     roots = discover_sdk_roots(Path(args.sdk_root) if args.sdk_root else None)
     if not roots:
-        print(
-            f"No Wwise SDK found. Add its path to {CONFIG_FILE} or pass --sdk-root.",
-            file=sys.stderr,
-        )
+        print(missing_sdk_message(), file=sys.stderr)
         return 1
     selected = roots if args.all else roots[:1]
     for root in selected:
@@ -540,7 +550,7 @@ def command_resolve_url(args: argparse.Namespace) -> int:
     if primary_kind == "sdk-chm":
         print(
             "Read it with: python scripts/wwise_sdk.py search "
-            f'"{reference.anchor or reference.page}" --area help --glob '
+            f'"{reference.anchor or reference.page}" --area help --fixed --glob '
             f'"{reference.page}.html"'
         )
     return 0
@@ -562,10 +572,7 @@ def command_check(args: argparse.Namespace) -> int:
     if not roots:
         print(f"Configuration: {CONFIG_FILE}")
         print("SDK: none configured")
-        print(
-            f"Action: add your Wwise SDK path to sdk_roots in {CONFIG_FILE}.",
-            file=sys.stderr,
-        )
+        print(f"Action: {missing_sdk_message()}", file=sys.stderr)
         return 1
 
     print(f"Configuration: {CONFIG_FILE}")

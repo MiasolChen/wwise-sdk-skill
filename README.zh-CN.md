@@ -65,7 +65,15 @@ git clone https://github.com/MiasolChen/wwise-sdk-skill "$HOME\.config\opencode\
 
 ## 配置
 
-打开 Skill 安装目录中的 `wwise-sdk.config.json`，手动填写 SDK 路径：
+先复制 Skill 安装目录中的示例配置，再在副本里填写 SDK 路径：
+
+```sh
+cp wwise-sdk.config.example.json wwise-sdk.config.json
+```
+
+```powershell
+Copy-Item wwise-sdk.config.example.json wwise-sdk.config.json
+```
 
 ```json
 {
@@ -75,6 +83,9 @@ git clone https://github.com/MiasolChen/wwise-sdk-skill "$HOME\.config\opencode\
   "help_roots": []
 }
 ```
+
+`wwise-sdk.config.json` 已被 git 忽略，因此本机路径不会进入版本控制，`git pull`
+也不会产生冲突。
 
 每一项可以是 SDK 目录、包含 `SDK` 子目录的 Wwise 安装目录，或包含多个 Wwise
 安装目录的父目录。JSON 路径请使用正斜杠或转义后的反斜杠。Skill 不会从环境
@@ -221,8 +232,8 @@ python scripts/wwise_sdk.py locate
 python scripts/wwise_sdk.py info
 python scripts/wwise_sdk.py check
 python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
-python scripts/wwise_sdk.py search PostEvent --area include --context 3
-python scripts/wwise_sdk.py search PostEvent --area help --ignore-case
+python scripts/wwise_sdk.py search "PostEvent" --area include --fixed --context 3
+python scripts/wwise_sdk.py search "PostEvent" --area help --fixed --ignore-case
 python scripts/wwise_sdk.py resolve-url "https://www.audiokinetic.com/zh/public-library/2025.1.8_9170/?source=SDK&id=soundengine_events"
 ```
 

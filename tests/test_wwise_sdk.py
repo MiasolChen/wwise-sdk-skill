@@ -84,6 +84,20 @@ class WwiseSdkTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, '"sdk_roots" array'):
                 wwise_sdk.read_configured_roots(config)
 
+    def test_missing_sdk_message_points_at_example_config(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "wwise-sdk.config.json"
+            with mock.patch.object(wwise_sdk, "CONFIG_FILE", config):
+                absent = wwise_sdk.missing_sdk_message()
+                self.assertIn("wwise-sdk.config.example.json", absent)
+                self.assertIn("--sdk-root", absent)
+
+                config.write_text('{"sdk_roots": []}', encoding="utf-8")
+                present = wwise_sdk.missing_sdk_message()
+                self.assertNotIn("example", present)
+                self.assertIn("sdk_roots", present)
+
+
     def test_configured_help_roots_support_relative_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -270,6 +284,39 @@ class WwiseSdkTests(unittest.TestCase):
             )
             candidates = list(wwise_sdk.iter_local_doc_candidates(sdk, reference))
             self.assertIn(("authoring-html", page), candidates)
+
+    def test_resolve_url_prints_a_runnable_search_command(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sdk = make_sdk(root, nested=True)
+            chm = sdk / "Help" / "zh" / "WwiseSDK-Windows.chm"
+            chm.parent.mkdir(parents=True)
+            chm.write_bytes(b"\x00soundengine_events.html\x00")
+
+            args = argparse.Namespace(
+                url=(
+                    "https://www.audiokinetic.com/zh/public-library/2025.1.7_9143/"
+                    "?source=SDK&id=soundengine_events"
+                ),
+                sdk_root=str(sdk),
+            )
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(wwise_sdk.command_resolve_url(args), 0)
+
+            hint = next(
+                line
+                for line in output.getvalue().splitlines()
+                if line.startswith("Read it with:")
+            )
+            # The query is a required positional argument, so a hint without one
+            # is not runnable. --fixed keeps literal page and anchor names from
+            # being parsed as a regular expression.
+            self.assertIn('"soundengine_events"', hint)
+            self.assertIn("--fixed", hint)
+
+            command = hint.split("search", 1)[1].strip()
+            self.assertFalse(command.startswith("--"))
 
     def test_add_help_root_appends_and_deduplicates(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

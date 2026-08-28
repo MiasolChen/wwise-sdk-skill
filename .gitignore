@@ -5,6 +5,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Local configuration holds machine-specific SDK paths.
+wwise-sdk.config.json
+
 # Never vendor local SDK content.
 SDK/
 Wwise*/

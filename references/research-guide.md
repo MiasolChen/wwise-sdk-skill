@@ -31,7 +31,7 @@ use the selected SDK version's public headers for the exact compilable API.
 - Check callback type definitions and result enums referenced by a signature.
 - Search samples using both the API name and its associated feature name.
 - Search `Help` after confirming the header contract: `python
-  scripts/wwise_sdk.py search QUERY --area help`. The helper searches
+  scripts/wwise_sdk.py search "QUERY" --area help --fixed`. The helper searches
   configured, manually extracted `help_roots` first. It then temporarily
   extracts installed CHM files with Windows
   `hh.exe`, 7-Zip (`7z`, `7zz`, or `7za`), or chmlib's `extract_chmLib` when
@@ -102,7 +102,7 @@ are stored as plain HTML under `Authoring/Help/Contextual Help/<language>/`, or
 in directories listed in `help_roots`. Read a resolved CHM page with a glob:
 
 ```sh
-python scripts/wwise_sdk.py search "QUERY" --area help --glob "soundengine_events.html"
+python scripts/wwise_sdk.py search "QUERY" --area help --fixed --glob "soundengine_events.html"
 ```
 
 Cite resolved pages as `Help/zh/WwiseSDK-Windows.chm!/soundengine_events.html`.

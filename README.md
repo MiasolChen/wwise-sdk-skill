@@ -71,8 +71,16 @@ Restart or reload the AI tool after installation.
 
 ## Configuration
 
-Open `wwise-sdk.config.json` in the installed Skill directory and add your SDK
-path manually:
+Copy the example configuration in the installed Skill directory, then add your
+SDK path to the copy:
+
+```sh
+cp wwise-sdk.config.example.json wwise-sdk.config.json
+```
+
+```powershell
+Copy-Item wwise-sdk.config.example.json wwise-sdk.config.json
+```
 
 ```json
 {
@@ -82,6 +90,9 @@ path manually:
   "help_roots": []
 }
 ```
+
+`wwise-sdk.config.json` is git-ignored, so your machine-specific paths stay out
+of version control and survive a `git pull`.
 
 Each entry may point to an SDK directory, a Wwise installation containing an
 `SDK` directory, or a parent directory containing multiple Wwise installations.
@@ -239,8 +250,8 @@ python scripts/wwise_sdk.py locate
 python scripts/wwise_sdk.py info
 python scripts/wwise_sdk.py check
 python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
-python scripts/wwise_sdk.py search PostEvent --area include --context 3
-python scripts/wwise_sdk.py search PostEvent --area help --ignore-case
+python scripts/wwise_sdk.py search "PostEvent" --area include --fixed --context 3
+python scripts/wwise_sdk.py search "PostEvent" --area help --fixed --ignore-case
 python scripts/wwise_sdk.py resolve-url "https://www.audiokinetic.com/en/public-library/2025.1.8_9170/?source=SDK&id=soundengine_events"
 ```
 
