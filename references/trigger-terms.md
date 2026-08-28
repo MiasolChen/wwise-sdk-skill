@@ -6,10 +6,22 @@ the user also names Wwise.
 
 ## Official URL Signal
 
-Any URL on `audiokinetic.com` or one of its subdomains is an unconditional
-Wwise signal, even when the user's entire message is only the URL. Load this
-skill and run the local `resolve-url` workflow. Never send the URL to
+An Audiokinetic **documentation** URL is an unconditional Wwise signal, even
+when the user's entire message is only the URL. A URL qualifies when the host is
+`audiokinetic.com` or one of its subdomains **and** the path contains a
+documentation segment:
+
+- `https://www.audiokinetic.com/zh/public-library/2025.1.10_9233/?source=SDK&id=soundengine_events`
+- `https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine_events`
+
+Load this skill and run the local `resolve-url` workflow. Never send the URL to
 `webfetch`, web search, a browser, `curl`, or `wget`.
+
+Other paths on the same host are not documentation and have no local
+counterpart: `/community/` (Q&A, blog, forum), `/products/`, `/pricing/`,
+`/news/`, `/events/`, `/courses/`, and marketing pages. These are not a trigger.
+`resolve-url` rejects them; say the link is not documentation instead of
+answering it from local Help content.
 
 ## Product And Tooling Names
 
@@ -57,7 +69,8 @@ Frequently referenced symbols verified in the SDK headers:
 Header, file, and path signals: `AkSoundEngine.h`, `AkCallbackTypes.h`,
 `AkSpatialAudio.h`, `IAkPlugin.h`, `AkWwiseSDKVersion.h`, `include/AK/`,
 `SDK/Help`, `WwiseSDK-Windows.chm`, `Wwise_IDs.h`, `SoundbanksInfo.json`,
-`*.bnk`, `*.wwu`, `*.wproj`, and any `audiokinetic.com` URL.
+`*.bnk`, `*.wwu`, `*.wproj`, and any Audiokinetic documentation URL under
+`library` or `public-library`.
 
 ## Not Triggers On Their Own
 

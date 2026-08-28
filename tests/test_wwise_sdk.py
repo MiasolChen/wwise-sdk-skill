@@ -207,7 +207,41 @@ class WwiseSdkTests(unittest.TestCase):
 
     def test_parse_doc_url_rejects_other_hosts(self) -> None:
         with self.assertRaisesRegex(ValueError, "Not an Audiokinetic"):
-            wwise_sdk.parse_doc_url("https://example.com/?id=soundengine_events")
+            wwise_sdk.parse_doc_url(
+                "https://example.com/public-library/?id=soundengine_events"
+            )
+
+    def test_parse_doc_url_rejects_lookalike_host(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Not an Audiokinetic"):
+            wwise_sdk.parse_doc_url(
+                "https://audiokinetic.com.evil.test/public-library/?id=soundengine_events"
+            )
+
+    def test_parse_doc_url_rejects_non_documentation_paths(self) -> None:
+        for url in (
+            "https://www.audiokinetic.com/zh/community/",
+            "https://www.audiokinetic.com/en/blog/some-post/",
+            "https://www.audiokinetic.com/zh/community/?id=soundengine_events",
+        ):
+            with self.subTest(url=url):
+                with self.assertRaisesRegex(ValueError, "Not a Wwise documentation URL"):
+                    wwise_sdk.parse_doc_url(url)
+
+    def test_parse_doc_url_accepts_library_path(self) -> None:
+        reference = wwise_sdk.parse_doc_url(
+            "https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine_events"
+        )
+        self.assertEqual(reference.page, "soundengine_events")
+        self.assertEqual(reference.library, "sdk")
+        self.assertIsNone(reference.version)
+
+    def test_parse_doc_url_reads_page_from_path(self) -> None:
+        reference = wwise_sdk.parse_doc_url(
+            "https://www.audiokinetic.com/zh/public-library/2025.1.10_9233/"
+            "introducing_wwise.html"
+        )
+        self.assertEqual(reference.page, "introducing_wwise")
+        self.assertEqual(reference.language, "zh")
 
     def test_chm_contains_page(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

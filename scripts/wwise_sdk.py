@@ -49,6 +49,7 @@ VERSION_MACROS = {
     "build": "AK_WWISESDK_VERSION_BUILD",
 }
 DOC_LANGUAGES = {"en", "ja", "ko", "zh"}
+DOC_PATH_SEGMENTS = {"library", "public-library"}
 AUTHORING_HELP = Path("Authoring/Help/Contextual Help")
 SDK_HELP = Path("SDK/Help")
 
@@ -66,11 +67,18 @@ class DocReference(NamedTuple):
 def parse_doc_url(url: str) -> DocReference:
     """Parse an Audiokinetic documentation URL into local lookup information."""
     parsed = urlparse(url.strip())
-    if parsed.netloc and "audiokinetic.com" not in parsed.netloc.lower():
-        raise ValueError(f"Not an Audiokinetic documentation URL: {url}")
+    host = parsed.netloc.lower().rsplit("@", 1)[-1].split(":", 1)[0]
+    if host and host != "audiokinetic.com" and not host.endswith(".audiokinetic.com"):
+        raise ValueError(f"Not an Audiokinetic URL: {url}")
 
     query = parse_qs(parsed.query)
     segments = [unquote(part) for part in parsed.path.split("/") if part]
+
+    if not any(segment.lower() in DOC_PATH_SEGMENTS for segment in segments):
+        raise ValueError(
+            "Not a Wwise documentation URL. Only documentation paths such as "
+            f"/library/ and /public-library/ can be resolved locally: {url}"
+        )
 
     language = next((part for part in segments if part in DOC_LANGUAGES), "en")
 
@@ -83,7 +91,16 @@ def parse_doc_url(url: str) -> DocReference:
 
     page = next(iter(query.get("id", [])), "")
     if not page:
-        candidate = segments[-1] if segments else ""
+        candidate = next(
+            (
+                part
+                for part in reversed(segments)
+                if part.lower() not in DOC_PATH_SEGMENTS
+                and part not in DOC_LANGUAGES
+                and not re.fullmatch(r"(\d+)\.(\d+)\.(\d+)[._](\d+)|edge", part)
+            ),
+            "",
+        )
         page = candidate[:-5] if candidate.endswith(".html") else candidate
     page = page.split("#", 1)[0].strip()
     if not page:

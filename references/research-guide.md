@@ -75,7 +75,8 @@ Use one directory per SDK version, keep it outside this repository, and rely on
 
 ## Official Documentation URLs
 
-Never fetch `audiokinetic.com`. Resolve a provided URL to its local page:
+Never fetch `audiokinetic.com`. Resolve a provided documentation URL to its
+local page:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"
@@ -85,10 +86,16 @@ Mapping rules:
 
 | URL part | Meaning |
 | --- | --- |
+| `/library/`, `/public-library/` | required documentation path; other paths are rejected |
 | `id=soundengine_events` | local file `soundengine_events.html` |
 | `/zh/`, `/en/`, `/ja/`, `/ko/` | localized Help directory |
 | `2025.1.10_9233` | documented version, compare with the local SDK |
+| `edge` | latest online documentation, no version to compare |
 | `source=SDK` | SDK documentation rather than Authoring documentation |
+
+Links to other parts of the site, such as `/community/`, `/blog/`, `/products/`,
+or `/pricing/`, are not documentation. `resolve-url` rejects them; report that
+the link has no local equivalent instead of answering it from local Help.
 
 SDK pages are stored inside `SDK/Help/**/WwiseSDK-Windows.chm`. Authoring pages
 are stored as plain HTML under `Authoring/Help/Contextual Help/<language>/`, or

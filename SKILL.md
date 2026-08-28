@@ -1,11 +1,11 @@
 ---
 name: wwise-sdk-skills
-description: Use whenever the user provides an `audiokinetic.com` URL, including a bare URL with no question; do not fetch or search that website, and resolve its documentation page against the locally installed Wwise SDK instead. Also use for Wwise, Audiokinetic, WAAPI, Wwise Launcher, SoundBank, Wwise Event, RTPC, Game Object, Wwise Spatial Audio, `AK::` or `Ak` symbols such as PostEvent, RegisterGameObj, SetRTPCValue, LoadBank, AKRESULT, IAkEffectPlugin, or a local Wwise SDK path, header, or CHM Help page. Do NOT use for general audio programming or other middleware unless Wwise is explicitly involved.
+description: Use whenever the user provides an Audiokinetic documentation URL under `audiokinetic.com/.../library/` or `.../public-library/`, including a bare URL with no question; do not fetch or search that website, and resolve its documentation page against the locally installed Wwise SDK instead. Other `audiokinetic.com` paths such as `/community/`, `/blog/`, or `/products/` are not documentation and are out of scope. Also use for Wwise, Audiokinetic, WAAPI, Wwise Launcher, SoundBank, Wwise Event, RTPC, Game Object, Wwise Spatial Audio, `AK::` or `Ak` symbols such as PostEvent, RegisterGameObj, SetRTPCValue, LoadBank, AKRESULT, IAkEffectPlugin, or a local Wwise SDK path, header, or CHM Help page. Do NOT use for general audio programming or other middleware unless Wwise is explicitly involved.
 license: MIT
 compatibility: Requires a locally installed Wwise SDK and local file access. Python 3.9+ is optional.
 metadata:
   author: Miasol
-  version: "1.0.2"
+  version: "1.1.0"
 ---
 
 # Wwise SDK Reference
@@ -15,12 +15,15 @@ an API from one Wwise release exists or has the same signature in another.
 
 ## Mandatory URL Routing
 
-Treat any URL whose hostname is `audiokinetic.com` or a subdomain such as
-`www.audiokinetic.com` as Wwise-specific input. The URL alone is enough to
-activate this skill; the user does not also need to write "Wwise" or ask a
-question.
+Only Audiokinetic **documentation** URLs route to this workflow. A URL qualifies
+when its host is `audiokinetic.com` or a subdomain such as `www.audiokinetic.com`
+**and** its path contains a documentation segment:
 
-For such a URL, the first action must be local resolution:
+- `https://www.audiokinetic.com/zh/public-library/2025.1.10_9233/?source=SDK&id=...`
+- `https://www.audiokinetic.com/library/edge/?source=SDK&id=...`
+
+Such a URL alone is enough to activate this skill; the user does not also need to
+write "Wwise" or ask a question. The first action must be local resolution:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"
@@ -37,6 +40,20 @@ SDK or Help package and the URL/version information that could be parsed. Do
 not fetch the website as a fallback and do not reconstruct its content from
 memory.
 
+### Non-Documentation Audiokinetic URLs
+
+Everything else on the site is not Wwise documentation and has no local
+counterpart: `/community/` (including Q&A, blog, and forum pages), `/products/`,
+`/pricing/`, `/news/`, `/events/`, `/courses/`, and marketing pages.
+`resolve-url` rejects these paths on purpose.
+
+For such a URL, do not run `resolve-url` and do not invent local evidence. Say
+that the link is not documentation, so this skill cannot resolve it locally, and
+handle it with the host's normal rules for web links. If the user actually wants
+API or concept documentation, ask for the corresponding `library` or
+`public-library` link, or search the installed SDK by topic instead.
+
+
 ## When To Use This Skill
 
 Activate only when the request is Wwise-specific. Require at least one explicit
@@ -50,8 +67,12 @@ signal:
   `PostEvent`, `RegisterGameObj`, `SetRTPCValue`, `LoadBank`, `AKRESULT`,
   `AkPlayingID`, `IAkEffectPlugin`.
 - A local Wwise SDK path, header, or `Help/*.chm` page.
-- Any `audiokinetic.com` URL. A bare URL is sufficient and always routes to
-  the local SDK workflow in **Mandatory URL Routing**.
+- An Audiokinetic documentation URL, that is an `audiokinetic.com` link whose
+  path contains `library` or `public-library`. A bare URL is sufficient and
+  always routes to the local SDK workflow in **Mandatory URL Routing**. Other
+  `audiokinetic.com` paths, such as `/community/` or `/blog/`, are not
+  documentation and are not a trigger.
+
 
 See `references/trigger-terms.md` for the full term list.
 
@@ -178,9 +199,9 @@ python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
 
 ## Official Documentation URLs
 
-When the user provides an `audiokinetic.com` URL, including a bare link with no
-surrounding request, do not fetch it. The site blocks automated access. Map it
-to the local page instead:
+When the user provides an Audiokinetic documentation URL, including a bare link
+with no surrounding request, do not fetch it. The site blocks automated access.
+Map it to the local page instead:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"
@@ -188,11 +209,15 @@ python scripts/wwise_sdk.py resolve-url "URL"
 
 The URL carries everything needed for the mapping:
 
+- The path must contain `library` or `public-library`; other paths are not
+  documentation and are rejected.
 - `id` is the local HTML file name, for example `id=soundengine_events` maps to
   `soundengine_events.html`.
 - The path language segment (`en`, `zh`, `ja`, `ko`) selects the localized Help.
 - The version segment such as `2025.1.10_9233` is the documented version. Report
   a mismatch with the local SDK instead of assuming the content is identical.
+  `library/edge` has no version segment, so compare nothing and state that the
+  link targets the latest online documentation.
 - `source` distinguishes SDK documentation from Authoring documentation.
 
 SDK pages live inside `SDK/Help/**/WwiseSDK-Windows.chm`. Authoring pages live
@@ -205,6 +230,12 @@ python scripts/wwise_sdk.py search "QUERY" --area help --glob "soundengine_event
 
 If the page is not installed locally, say so and state which Help package is
 missing rather than reconstructing the page from memory.
+
+If `resolve-url` reports that the link is not a documentation URL, the link
+points at other website content such as `/community/` or `/blog/`. There is no
+local equivalent, so do not substitute one. See **Non-Documentation
+Audiokinetic URLs** above.
+
 
 ## Research Workflow
 
@@ -278,6 +309,9 @@ and `references/research-guide.md` for evidence and citation guidance.
 - Do not search, scrape, or fetch Audiokinetic's web-based SDK documentation.
   The site uses bot detection and does not permit automated bot access. Explain
   this restriction and use the local SDK instead.
+- Do not treat non-documentation Audiokinetic pages, such as community, blog,
+  product, or pricing pages, as SDK documentation, and do not answer them from
+  local Help content.
 - Do not copy or publish Wwise SDK headers, libraries, samples, Help files, or
   other proprietary files. Quote only the small fragment needed to explain an
   API and direct the user to their local installation.

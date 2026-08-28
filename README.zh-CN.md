@@ -202,9 +202,15 @@ Local page: Help/zh/WwiseSDK-Windows.chm!/soundengine_events.html
 ```
 
 链接中的 `id` 与本地 HTML 文件名一致，语言段用于选择对应语言的帮助文档，
-版本段会与本地 SDK 版本比对并在不一致时给出提示。你也可以直接把链接贴进
-提问，让 AI 自行解析。即使消息中只有一条 Audiokinetic 链接，也应触发本
-Skill；AI 必须先运行 `resolve-url`，不得对该链接调用网页抓取或网页搜索工具。
+版本段会与本地 SDK 版本比对并在不一致时给出提示。两种文档路径都支持：带版本号
+的 `/public-library/<版本>/` 和不带版本号的 `/library/edge/`。你也可以直接把
+链接贴进提问，让 AI 自行解析。即使消息中只有一条 Audiokinetic 文档链接，也应
+触发本 Skill；AI 必须先运行 `resolve-url`，不得对该链接调用网页抓取或网页搜索
+工具。
+
+只有文档链接在本 Skill 范围内。官网其他内容（例如 `/community/`、`/blog/`、
+`/products/`、`/pricing/`）不属于文档，本地也没有对应页面，因此 `resolve-url`
+会直接拒绝，而不会把它错误映射到无关的帮助页面。
 
 ## 可选 Python 工具
 
