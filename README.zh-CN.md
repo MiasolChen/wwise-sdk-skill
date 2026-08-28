@@ -3,6 +3,8 @@
 一个通过本地头文件、示例、帮助文档和源码准确检索不同版本 Wwise SDK 的
 Agent Skill。
 
+[![tests](https://github.com/MiasolChen/wwise-sdk-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/MiasolChen/wwise-sdk-skills/actions/workflows/tests.yml)
+
 [English](README.md)
 
 > [!IMPORTANT]

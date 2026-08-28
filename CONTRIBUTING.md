@@ -7,7 +7,7 @@ without redistributing Audiokinetic files.
 
 Requirements:
 
-- Python 3.9 or newer.
+- Python 3.9 or newer. CI covers 3.9 through 3.13 on Linux, Windows, and macOS.
 - A local Wwise SDK only for integration testing.
 
 Run the unit tests:
@@ -20,7 +20,7 @@ Run an integration smoke test against your own installation:
 
 ```sh
 python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
-python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" search PostEvent --context 1 --max-results 1
+python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" search "PostEvent" --fixed --context 1 --max-results 1
 ```
 
 ## Pull Requests

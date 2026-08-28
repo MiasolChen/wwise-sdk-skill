@@ -3,6 +3,8 @@
 An Agent Skill for version-accurate Wwise SDK research using locally installed
 headers, samples, Help files, and source code.
 
+[![tests](https://github.com/MiasolChen/wwise-sdk-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/MiasolChen/wwise-sdk-skills/actions/workflows/tests.yml)
+
 [中文](README.zh-CN.md)
 
 > [!IMPORTANT]
