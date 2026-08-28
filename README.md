@@ -51,20 +51,20 @@ Clone the repository into a Skill directory supported by your AI tool:
 
 | Tool | Global directory | Project directory |
 | --- | --- | --- |
-| OpenCode | `~/.config/opencode/skills/wwise-sdk-skills/` | `.opencode/skills/wwise-sdk-skills/` |
-| Claude Code | `~/.claude/skills/wwise-sdk-skills/` | `.claude/skills/wwise-sdk-skills/` |
-| Codex / Agent Skills | `~/.agents/skills/wwise-sdk-skills/` | `.agents/skills/wwise-sdk-skills/` |
+| OpenCode | `~/.config/opencode/skills/wwise-sdk-skill/` | `.opencode/skills/wwise-sdk-skill/` |
+| Claude Code | `~/.claude/skills/wwise-sdk-skill/` | `.claude/skills/wwise-sdk-skill/` |
+| Codex / Agent Skills | `~/.agents/skills/wwise-sdk-skill/` | `.agents/skills/wwise-sdk-skill/` |
 
 Example for a global OpenCode installation:
 
 ```sh
-git clone https://github.com/MiasolChen/wwise-sdk-skills ~/.config/opencode/skills/wwise-sdk-skills
+git clone https://github.com/MiasolChen/wwise-sdk-skill ~/.config/opencode/skills/wwise-sdk-skill
 ```
 
 Windows PowerShell:
 
 ```powershell
-git clone https://github.com/MiasolChen/wwise-sdk-skills "$HOME\.config\opencode\skills\wwise-sdk-skills"
+git clone https://github.com/MiasolChen/wwise-sdk-skill "$HOME\.config\opencode\skills\wwise-sdk-skill"
 ```
 
 Restart or reload the AI tool after installation.
@@ -243,6 +243,10 @@ python scripts/wwise_sdk.py search PostEvent --area include --context 3
 python scripts/wwise_sdk.py search PostEvent --area help --ignore-case
 python scripts/wwise_sdk.py resolve-url "https://www.audiokinetic.com/en/public-library/2025.1.8_9170/?source=SDK&id=soundengine_events"
 ```
+
+## Credits
+
+Designed by Miasol. Written with GPT and Claude.
 
 ## License
 

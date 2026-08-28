@@ -45,20 +45,20 @@ API 的最终依据。
 
 | 工具 | 全局目录 | 项目目录 |
 | --- | --- | --- |
-| OpenCode | `~/.config/opencode/skills/wwise-sdk-skills/` | `.opencode/skills/wwise-sdk-skills/` |
-| Claude Code | `~/.claude/skills/wwise-sdk-skills/` | `.claude/skills/wwise-sdk-skills/` |
-| Codex / Agent Skills | `~/.agents/skills/wwise-sdk-skills/` | `.agents/skills/wwise-sdk-skills/` |
+| OpenCode | `~/.config/opencode/skills/wwise-sdk-skill/` | `.opencode/skills/wwise-sdk-skill/` |
+| Claude Code | `~/.claude/skills/wwise-sdk-skill/` | `.claude/skills/wwise-sdk-skill/` |
+| Codex / Agent Skills | `~/.agents/skills/wwise-sdk-skill/` | `.agents/skills/wwise-sdk-skill/` |
 
 以 OpenCode 全局安装为例：
 
 ```sh
-git clone https://github.com/MiasolChen/wwise-sdk-skills ~/.config/opencode/skills/wwise-sdk-skills
+git clone https://github.com/MiasolChen/wwise-sdk-skill ~/.config/opencode/skills/wwise-sdk-skill
 ```
 
 Windows PowerShell：
 
 ```powershell
-git clone https://github.com/MiasolChen/wwise-sdk-skills "$HOME\.config\opencode\skills\wwise-sdk-skills"
+git clone https://github.com/MiasolChen/wwise-sdk-skill "$HOME\.config\opencode\skills\wwise-sdk-skill"
 ```
 
 安装后请重启或重新加载 AI 工具。
@@ -225,6 +225,10 @@ python scripts/wwise_sdk.py search PostEvent --area include --context 3
 python scripts/wwise_sdk.py search PostEvent --area help --ignore-case
 python scripts/wwise_sdk.py resolve-url "https://www.audiokinetic.com/zh/public-library/2025.1.8_9170/?source=SDK&id=soundengine_events"
 ```
+
+## 署名
+
+由 Miasol 设计，由 GPT 和 Claude 协助撰写。
 
 ## 许可证
 

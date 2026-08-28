@@ -1,5 +1,5 @@
 ---
-name: wwise-sdk-skills
+name: wwise-sdk-skill
 description: Use whenever the user provides an Audiokinetic documentation URL under `audiokinetic.com/.../library/` or `.../public-library/`, including a bare URL with no question; do not fetch or search that website, and resolve its documentation page against the locally installed Wwise SDK instead. Other `audiokinetic.com` paths such as `/community/`, `/blog/`, or `/products/` are not documentation and are out of scope. Also use for Wwise, Audiokinetic, WAAPI, Wwise Launcher, SoundBank, Wwise Event, RTPC, Game Object, Wwise Spatial Audio, `AK::` or `Ak` symbols such as PostEvent, RegisterGameObj, SetRTPCValue, LoadBank, AKRESULT, IAkEffectPlugin, or a local Wwise SDK path, header, or CHM Help page. Do NOT use for general audio programming or other middleware unless Wwise is explicitly involved.
 license: MIT
 compatibility: Requires a locally installed Wwise SDK and local file access. Python 3.9+ is optional.
