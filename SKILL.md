@@ -23,8 +23,7 @@ helper command resolves an SDK root before it does anything:
 
 1. **Resolve the SDK root.** A path the user supplied, then `sdk_roots` in
    `wwise-sdk.config.json`, then `locate`. If none resolves, ask the user for
-   the path and stop here. This is the only hard blocker. See
-   **Locate The SDK**.
+   the path and stop here. This is the only hard blocker.
 2. **Route on what the request carries.**
    - An Audiokinetic documentation URL: run `resolve-url`, then run the
      `search` command it prints. See **Documentation URLs**.
@@ -33,7 +32,68 @@ helper command resolves an SDK root before it does anything:
    `relative/path:line`. See **Answer Requirements**.
 
 Run `check` when this is the user's first use, when they ask whether anything
-is missing, or when a lookup fails.
+is missing, or when a lookup fails. See **Verifying The Installation**.
+
+## Scope
+
+A mixed question gets a mixed answer: handle the general audio part normally,
+and go offline into the SDK only for the Wwise part. A project that already
+calls `AkSoundEngine` or ships Wwise integration files counts as naming Wwise,
+so its audio questions are Wwise questions.
+
+Where Wwise is genuinely unnamed and unimplied ("how do I do occlusion in my
+game?"), answer as an ordinary audio question, or ask which middleware they
+use, and leave the SDK closed.
+
+## Resolve The SDK Root
+
+Resolve in this order:
+
+1. A path explicitly supplied by the user.
+2. Paths listed in `wwise-sdk.config.json` in this skill's installation
+   directory.
+3. The optional helper:
+
+   ```sh
+   python scripts/wwise_sdk.py locate
+   ```
+
+4. Ask the user for the SDK path if discovery fails.
+
+Accept either the SDK directory itself or a Wwise installation directory that
+contains `SDK`. Validate it by checking for `include/AK/AkWwiseSDKVersion.h`.
+Cite SDK-relative paths only, so a machine-specific path stays out of answers,
+configuration, and the repository unless the user explicitly asks for one.
+
+To inspect a specific installation:
+
+```sh
+python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
+```
+
+Helper paths such as `scripts/wwise_sdk.py` are relative to this skill's
+installation directory, not the user's project. Invoke the script with an
+absolute path when the working directory is elsewhere, and use `python3` when
+`python` is unavailable on the host.
+
+### When No SDK Resolves
+
+This repository does not include the Wwise SDK, and installing the skill does
+not install it. Tell the user to open **Wwise Launcher**, install or modify the
+desired Wwise version with its SDK component included, then copy
+`wwise-sdk.config.example.json` to `wwise-sdk.config.json` and add the installed
+SDK path to its `sdk_roots` array. That copy is git-ignored, so it keeps
+machine-specific paths out of version control.
+
+`sdk_roots` accepts SDK directories, Wwise installation directories containing
+`SDK`, or parent directories containing multiple Wwise installations. The
+configuration file is the only place the SDK path comes from; environment
+variables are not read.
+
+The optional `help_roots` array contains user-managed directories where CHM
+files have already been extracted. Search those directories directly when the
+question needs Help content. Keep each extracted directory associated with the
+matching SDK version, and label every finding with the version it came from.
 
 ## Documentation URLs
 
@@ -76,150 +136,6 @@ resolve it locally, and hand it to the host's normal rules for web links. If the
 user actually wants API or concept documentation, ask for the corresponding
 `library` or `public-library` link, or search the installed SDK by topic.
 
-
-## When To Use This Skill
-
-Activate only when the request is Wwise-specific. Require at least one explicit
-signal:
-
-- The words `Wwise`, `Audiokinetic`, `WAAPI`, or `Wwise Launcher`.
-- A Wwise product concept named as such: SoundBank, Wwise Event, RTPC, Switch,
-  State, Game Object, Listener, Auxiliary Send, Wwise Spatial Audio, Room,
-  Portal, Actor-Mixer, Music Segment, Dynamic Dialogue.
-- An SDK symbol, typically `AK::`, `Ak`, `AK_`, or `IAk` prefixed, for example
-  `PostEvent`, `RegisterGameObj`, `SetRTPCValue`, `LoadBank`, `AKRESULT`,
-  `AkPlayingID`, `IAkEffectPlugin`.
-- A local Wwise SDK path, header, or `Help/*.chm` page.
-- An Audiokinetic documentation URL, that is an `audiokinetic.com` link whose
-  path contains `library` or `public-library`. A bare URL is sufficient and
-  always routes to the local SDK workflow in **Documentation URLs**. Other
-  `audiokinetic.com` paths, such as `/community/` or `/blog/`, are not
-  documentation and are not a trigger.
-
-
-See `references/trigger-terms.md` for the full term list.
-
-Do not activate for general audio work that never names Wwise:
-
-- General game audio design, mixing, mastering, loudness, or sound design.
-- Generic audio programming: DSP, FFT, convolution, resampling, ring buffers,
-  audio callbacks, sample rates, channel layouts.
-- Other engines and middleware: FMOD, CRIWARE, Unity `AudioSource` or
-  `AudioMixer`, Unreal MetaSounds, Web Audio API, XAudio2, WASAPI, PortAudio.
-- Terms that only sound Wwise-related out of context: "spatial audio",
-  "occlusion", "reverb", "3D audio", "event", "bus", "attenuation".
-
-Ambiguous cases:
-
-- "How do I do occlusion in my game?" is generic. Answer normally, or ask
-  whether the user is using Wwise. Do not open the SDK unprompted.
-- "How do I do occlusion in Wwise?" is Wwise-specific. Use this skill.
-- If a project clearly integrates Wwise, for example it contains `AkSoundEngine`
-  calls or `Wwise` integration files, treat that as an explicit signal.
-
-When a question mixes both, answer the general part normally and use this skill
-only for the Wwise-specific part. Do not volunteer that this skill exists for
-non-Wwise audio questions.
-
-## Prerequisite: Install The Wwise SDK First
-
-Before using this skill, require the user to download and install the SDK for
-their Wwise version through **Wwise Launcher**. This repository does not include
-the Wwise SDK, and installing the skill does not install it.
-
-If no local SDK can be found, tell the user to open Wwise Launcher, install or
-modify the desired Wwise version, and include its SDK component. Then ask them
-to copy `wwise-sdk.config.example.json` to `wwise-sdk.config.json` and add the
-installed SDK path to its `sdk_roots` array. That copy is git-ignored, so it
-keeps machine-specific paths out of version control. Every API detail in the
-answer comes from that installation once it resolves.
-
-## First Use: Check For Missing Documentation
-
-When the user first uses this skill, asks whether anything is missing, or a
-lookup fails, run the check:
-
-```sh
-python scripts/wwise_sdk.py check
-```
-
-Report the detected SDK and version, which packages are installed, whether a
-CHM extractor exists, and any gap the command lists. Point the user at Wwise
-Launcher to install the missing packages.
-
-A missing package is a capability limit, not a failure. Continue working with
-what is installed and state plainly which kind of evidence is unavailable:
-
-- No `include`: stop and ask for a valid SDK path. This is the only hard blocker.
-- No SDK Help CHM: answer from headers and samples; official guides and
-  conceptual pages cannot be quoted.
-- No Authoring Help: Authoring documentation URLs cannot be resolved locally.
-- No `samples`: no shipped usage patterns to cite.
-- No `source`: no implementation detail; the public API contract is unaffected.
-- No CHM extractor: Help search requires a pre-extracted `help_roots` directory.
-
-The skill still works with gaps. Answers stay offline: name the absent package
-as the limit of the answer.
-
-## Persistently Extracting CHM Help
-
-If the user wants faster or repeated Help access, or the host has no CHM
-extractor at query time, extract the CHM once and register the output:
-
-```sh
-python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
-```
-
-This writes the directory into `help_roots` so the extracted HTML can be read
-with normal file tools afterwards. Ask the user where to place the output, and
-use a separate directory per SDK version, outside this skill's repository. Use
-`--no-config` when the user does not want the configuration changed.
-
-## Locate The SDK
-
-Resolve the SDK root in this order:
-
-1. A path explicitly supplied by the user.
-2. Paths listed in `wwise-sdk.config.json` in this skill's installation
-   directory.
-3. The optional helper:
-
-   ```sh
-   python scripts/wwise_sdk.py locate
-   ```
-
-4. Ask the user for the SDK path if discovery fails.
-
-The user must fill in the configuration file manually, copying
-`wwise-sdk.config.example.json` to `wwise-sdk.config.json` first. Its
-`sdk_roots` array
-accepts SDK directories, Wwise installation directories containing `SDK`, or
-parent directories containing multiple Wwise installations. The configuration
-file is the only place the SDK path comes from; environment variables are not
-read.
-
-The optional `help_roots` array contains user-managed directories where CHM
-files have already been extracted. Search those directories directly when the
-question needs Help content. Keep each extracted directory associated with the
-matching SDK version, and label every finding with the version it came from.
-
-Helper paths such as `scripts/wwise_sdk.py` are relative to this skill's
-installation directory, not the user's project. Invoke the script with an
-absolute path when the working directory is elsewhere, and use `python3` when
-`python` is unavailable on the host.
-
-Accept either the SDK directory itself or a Wwise installation directory that
-contains `SDK`. Validate it by checking for
-`include/AK/AkWwiseSDKVersion.h`. Cite SDK-relative paths only, so a
-machine-specific path stays out of answers, configuration, and the repository
-unless the user explicitly asks for one.
-
-To inspect a specific installation:
-
-```sh
-python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
-```
-
 ## Research Workflow
 
 1. Run `info` or read `include/AK/AkWwiseSDKVersion.h`; state the inspected
@@ -231,12 +147,12 @@ python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
 3. Search `Help` for the locally installed official SDK documentation
    (`Help/*.chm` and localized variants such as `Help/zh/*.chm` on Windows)
    with `python scripts/wwise_sdk.py search "QUERY" --area help --fixed`. The
-   helper first
-   searches configured `help_roots`, then temporarily extracts installed CHM
-   files with `hh.exe`, 7-Zip, or chmlib when available. Prefer the user's
-   language when multiple localized files exist. See `references/research-guide.md`
-   for manual extraction and platform details. Use Help to add official
-   concepts, workflows, and explanations around the header contract.
+   helper first searches configured `help_roots`, then temporarily extracts
+   installed CHM files with `hh.exe`, 7-Zip, or chmlib when available. Prefer
+   the user's language when multiple localized files exist. See
+   `references/research-guide.md` for manual extraction and platform details.
+   Use Help to add official concepts, workflows, and explanations around the
+   header contract.
 4. Search `samples` for supported integration and usage patterns. Examples
    illustrate intended use but do not override declarations or Help.
 5. Search the SDK `source` tree only when implementation detail is necessary
@@ -292,9 +208,8 @@ python scripts/wwise_sdk.py search "Set(RTPCValue|State|Switch)" --area include 
 ```
 
 If the helper is unavailable, use the host's normal file search tools with the
-same search order. See `references/topic-map.md` for likely entry points,
-`references/trigger-terms.md` for the terms that make a request Wwise-specific,
-and `references/research-guide.md` for evidence and citation guidance.
+same search order. See `references/topic-map.md` for likely entry points, and
+`references/research-guide.md` for evidence and citation guidance.
 
 ## Answer Requirements
 
@@ -311,11 +226,62 @@ and `references/research-guide.md` for evidence and citation guidance.
 - Keep usernames, absolute home paths, license keys, project secrets, and
   unrelated local files out of the answer.
 
+## Response Shape
+
+Prefer this compact structure:
+
+1. Direct answer.
+2. Confirmed signature or behavior.
+3. Minimal example, if useful.
+4. Version and local citations.
+5. Caveats or unresolved points.
+
+## Verifying The Installation
+
+Run the check on first use, when the user asks whether anything is missing, or
+when a lookup fails:
+
+```sh
+python scripts/wwise_sdk.py check
+```
+
+Report the detected SDK and version, which packages are installed, whether a
+CHM extractor exists, and any gap the command lists. Point the user at Wwise
+Launcher to install the missing packages.
+
+A missing package is a capability limit, not a failure. Continue working with
+what is installed and state plainly which kind of evidence is unavailable:
+
+- No `include`: stop and ask for a valid SDK path. This is the only hard blocker.
+- No SDK Help CHM: answer from headers and samples; official guides and
+  conceptual pages cannot be quoted.
+- No Authoring Help: Authoring documentation URLs cannot be resolved locally.
+- No `samples`: no shipped usage patterns to cite.
+- No `source`: no implementation detail; the public API contract is unaffected.
+- No CHM extractor: Help search requires a pre-extracted `help_roots` directory.
+
+The skill still works with gaps. Answers stay offline: name the absent package
+as the limit of the answer.
+
+### Persistently Extracting CHM Help
+
+If the user wants faster or repeated Help access, or the host has no CHM
+extractor at query time, extract the CHM once and register the output:
+
+```sh
+python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
+```
+
+This writes the directory into `help_roots` so the extracted HTML can be read
+with normal file tools afterwards. Ask the user where to place the output, and
+use a separate directory per SDK version, outside this skill's repository. Use
+`--no-config` when the user does not want the configuration changed.
+
 ## Boundaries
 
 - Keep this skill to Wwise. General game audio, audio programming, and
-  non-Wwise middleware are answered normally, without opening the SDK. See the
-  activation rules above and `references/trigger-terms.md`.
+  non-Wwise middleware are answered normally, without opening the SDK. See
+  **Scope**.
 - Answer documentation questions offline, from the installed Help package. When
   a page is absent, name the missing package. Audiokinetic's site is not a
   fallback for any of it, so leave `webfetch`, web search, a browser, `curl`,
@@ -329,13 +295,3 @@ and `references/research-guide.md` for evidence and citation guidance.
   the repository, or redistribute the extracted HTML.
 - Wwise and its SDK remain subject to Audiokinetic's terms; this skill's MIT
   license covers only the skill itself.
-
-## Response Shape
-
-Prefer this compact structure:
-
-1. Direct answer.
-2. Confirmed signature or behavior.
-3. Minimal example, if useful.
-4. Version and local citations.
-5. Caveats or unresolved points.
