@@ -1,6 +1,6 @@
 ---
 name: wwise-sdk-skill
-description: Use whenever the user provides an Audiokinetic documentation URL under `audiokinetic.com/.../library/` or `.../public-library/`, including a bare URL with no question; do not fetch or search that website, and resolve its documentation page against the locally installed Wwise SDK instead. Other `audiokinetic.com` paths such as `/community/`, `/blog/`, or `/products/` are not documentation and are out of scope. Also use for Wwise, Audiokinetic, WAAPI, Wwise Launcher, SoundBank, Wwise Event, RTPC, Game Object, Wwise Spatial Audio, `AK::` or `Ak` symbols such as PostEvent, RegisterGameObj, SetRTPCValue, LoadBank, AKRESULT, IAkEffectPlugin, or a local Wwise SDK path, header, or CHM Help page. Do NOT use for general audio programming or other middleware unless Wwise is explicitly involved.
+description: Wwise SDK research, resolved against the user's locally installed SDK rather than the web. Fires on an `audiokinetic.com` `library` or `public-library` documentation URL, including a bare URL with no question; a Wwise, Audiokinetic, or WAAPI topic; an `AK`-prefixed symbol or a bare Sound Engine call such as PostEvent or LoadBank; a local Wwise SDK path, header, or CHM Help page. Not for general audio programming or other middleware unless Wwise is named.
 license: MIT
 compatibility: Requires a locally installed Wwise SDK and local file access. Python 3.9+ is optional.
 metadata:
@@ -13,6 +13,25 @@ metadata:
 Use the user's installed Wwise SDK as the source of truth. Do not assume that
 an API from one Wwise release exists or has the same signature in another.
 
+## Order Of Operations
+
+Every request runs this chain. Step 1 gates everything else, because every
+helper command resolves an SDK root before it does anything:
+
+1. **Resolve the SDK root.** A path the user supplied, then `sdk_roots` in
+   `wwise-sdk.config.json`, then `locate`. If none resolves, ask the user for
+   the path and stop here. This is the only hard blocker. See
+   **Locate The SDK**.
+2. **Route on what the request carries.**
+   - An Audiokinetic documentation URL: run `resolve-url`, then run the
+     `search` command it prints. See **Mandatory URL Routing**.
+   - Anything else Wwise-specific: see **Research Workflow**.
+3. **Answer from what the installed SDK showed**, citing
+   `relative/path:line`. See **Answer Requirements**.
+
+Run `check` when this is the user's first use, when they ask whether anything
+is missing, or when a lookup fails.
+
 ## Mandatory URL Routing
 
 Only Audiokinetic **documentation** URLs route to this workflow. A URL qualifies
@@ -23,11 +42,16 @@ when its host is `audiokinetic.com` or a subdomain such as `www.audiokinetic.com
 - `https://www.audiokinetic.com/library/edge/?source=SDK&id=...`
 
 Such a URL alone is enough to activate this skill; the user does not also need to
-write "Wwise" or ask a question. The first action must be local resolution:
+write "Wwise" or ask a question. Once the SDK root resolves, local resolution is
+the first action taken on the URL:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"
 ```
+
+`resolve-url` needs a resolved SDK root, so a missing root surfaces here as a
+configuration problem, not as a reason to fetch the page. Ask for the SDK path
+and stop.
 
 Do not call `webfetch`, a web-search tool, `curl`, `wget`, a browser tool, or
 any other network retrieval method for that URL, even if one is available.
@@ -289,6 +313,18 @@ Two defaults decide whether a search returns the truth:
   enumerating overloads, enum members, or call sites. A truncated result set
   looks identical to a complete one, so treat hitting the limit as unfinished
   evidence rather than a finding.
+
+Exit codes separate an empty result from a broken command, so read them before
+concluding anything about the SDK:
+
+| Code | Meaning | Next step |
+| --- | --- | --- |
+| 0 | The command succeeded and printed its findings | Use the output |
+| 1 | Nothing to report, or the setup is short something. Covers a `search` with no match, an unresolvable SDK root, a `check` that found gaps, a page whose Help package is absent, and a rejected non-documentation URL | Read the message on stderr, which says which of these happened. A `search` miss means try another query, `--area`, or `--fixed`; the others are setup or scope facts to report |
+| 2 | The command itself was wrong: an invalid regular expression, or a bad flag | Fix the command and retry. For a literal symbol, add `--fixed` |
+
+Exit 1 never means the API is absent from the SDK. It means this command found
+nothing, which is a claim about the search, not about Wwise.
 
 Example searches:
 
