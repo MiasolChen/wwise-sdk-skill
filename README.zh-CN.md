@@ -184,7 +184,8 @@ Local page: Help/zh/WwiseSDK-Windows.chm!/soundengine_events.html
 
 链接中的 `id` 与本地 HTML 文件名一致，语言段用于选择对应语言的帮助文档，
 版本段会与本地 SDK 版本比对并在不一致时给出提示。你也可以直接把链接贴进
-提问，让 AI 自行解析。
+提问，让 AI 自行解析。即使消息中只有一条 Audiokinetic 链接，也应触发本
+Skill；AI 必须先运行 `resolve-url`，不得对该链接调用网页抓取或网页搜索工具。
 
 ## 可选 Python 工具
 

@@ -196,7 +196,9 @@ Local page: Help/zh/WwiseSDK-Windows.chm!/soundengine_events.html
 The URL's `id` matches the local HTML file name, the language segment selects
 the localized Help, and the version segment is compared against your installed
 SDK so version differences are reported. You can also just paste the URL into
-your prompt and let the AI resolve it.
+your prompt and let the AI resolve it. An Audiokinetic URL by itself is a Skill
+trigger: the AI should run `resolve-url` first and must not call a web-fetch or
+web-search tool for the URL.
 
 ## Optional Python Helper
 

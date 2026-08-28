@@ -4,6 +4,13 @@ Use this list to decide whether a request is Wwise-specific. Any term in the
 positive lists is an explicit signal. Terms in the negative list are not, unless
 the user also names Wwise.
 
+## Official URL Signal
+
+Any URL on `audiokinetic.com` or one of its subdomains is an unconditional
+Wwise signal, even when the user's entire message is only the URL. Load this
+skill and run the local `resolve-url` workflow. Never send the URL to
+`webfetch`, web search, a browser, `curl`, or `wget`.
+
 ## Product And Tooling Names
 
 Wwise, Audiokinetic, Wwise Launcher, Wwise Authoring, WAAPI, Wwise Authoring API,
@@ -50,7 +57,7 @@ Frequently referenced symbols verified in the SDK headers:
 Header, file, and path signals: `AkSoundEngine.h`, `AkCallbackTypes.h`,
 `AkSpatialAudio.h`, `IAkPlugin.h`, `AkWwiseSDKVersion.h`, `include/AK/`,
 `SDK/Help`, `WwiseSDK-Windows.chm`, `Wwise_IDs.h`, `SoundbanksInfo.json`,
-`*.bnk`, `*.wwu`, `*.wproj`, and `audiokinetic.com` documentation URLs.
+`*.bnk`, `*.wwu`, `*.wproj`, and any `audiokinetic.com` URL.
 
 ## Not Triggers On Their Own
 

@@ -1,17 +1,41 @@
 ---
 name: wwise-sdk-skills
-description: Use ONLY for Wwise-specific development questions, when the user names Wwise, Audiokinetic, WAAPI, Wwise Launcher, SoundBank, Wwise Event, RTPC, Game Object, Wwise Spatial Audio, an `AK::` or `Ak`-prefixed symbol such as PostEvent, RegisterGameObj, SetRTPCValue, LoadBank, AKRESULT, or IAkEffectPlugin, or an installed Wwise SDK path, header, or CHM Help page. Then verify signatures, enums, and usage against the locally installed SDK instead of guessing or using online docs. Do NOT use for general game audio, DSP, or audio programming questions, or for FMOD, Unity audio, Unreal MetaSounds, Web Audio, or other middleware.
+description: Use whenever the user provides an `audiokinetic.com` URL, including a bare URL with no question; do not fetch or search that website, and resolve its documentation page against the locally installed Wwise SDK instead. Also use for Wwise, Audiokinetic, WAAPI, Wwise Launcher, SoundBank, Wwise Event, RTPC, Game Object, Wwise Spatial Audio, `AK::` or `Ak` symbols such as PostEvent, RegisterGameObj, SetRTPCValue, LoadBank, AKRESULT, IAkEffectPlugin, or a local Wwise SDK path, header, or CHM Help page. Do NOT use for general audio programming or other middleware unless Wwise is explicitly involved.
 license: MIT
 compatibility: Requires a locally installed Wwise SDK and local file access. Python 3.9+ is optional.
 metadata:
   author: Miasol
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Wwise SDK Reference
 
 Use the user's installed Wwise SDK as the source of truth. Do not assume that
 an API from one Wwise release exists or has the same signature in another.
+
+## Mandatory URL Routing
+
+Treat any URL whose hostname is `audiokinetic.com` or a subdomain such as
+`www.audiokinetic.com` as Wwise-specific input. The URL alone is enough to
+activate this skill; the user does not also need to write "Wwise" or ask a
+question.
+
+For such a URL, the first action must be local resolution:
+
+```sh
+python scripts/wwise_sdk.py resolve-url "URL"
+```
+
+Do not call `webfetch`, a web-search tool, `curl`, `wget`, a browser tool, or
+any other network retrieval method for that URL, even if one is available.
+Do not try the website first and fall back to local content only after it
+fails. `resolve-url` and the installed SDK Help are the primary route.
+
+After resolving the URL, inspect the matching local page with `search --area
+help --glob "PAGE.html"`. If local resolution fails, report the missing local
+SDK or Help package and the URL/version information that could be parsed. Do
+not fetch the website as a fallback and do not reconstruct its content from
+memory.
 
 ## When To Use This Skill
 
@@ -25,8 +49,9 @@ signal:
 - An SDK symbol, typically `AK::`, `Ak`, `AK_`, or `IAk` prefixed, for example
   `PostEvent`, `RegisterGameObj`, `SetRTPCValue`, `LoadBank`, `AKRESULT`,
   `AkPlayingID`, `IAkEffectPlugin`.
-- A local Wwise SDK path, header, `Help/*.chm` page, or an
-  `audiokinetic.com` documentation URL.
+- A local Wwise SDK path, header, or `Help/*.chm` page.
+- Any `audiokinetic.com` URL. A bare URL is sufficient and always routes to
+  the local SDK workflow in **Mandatory URL Routing**.
 
 See `references/trigger-terms.md` for the full term list.
 
@@ -153,8 +178,9 @@ python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
 
 ## Official Documentation URLs
 
-When the user provides an `audiokinetic.com` documentation URL, do not fetch it.
-The site blocks automated access. Map it to the local page instead:
+When the user provides an `audiokinetic.com` URL, including a bare link with no
+surrounding request, do not fetch it. The site blocks automated access. Map it
+to the local page instead:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"
