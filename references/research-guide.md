@@ -2,32 +2,38 @@
 
 ## Evidence Priority
 
-Use the narrowest authoritative local evidence available:
+Use the installed SDK evidence in this order:
 
-1. Public headers for API contracts and signatures.
-2. Header comments for parameters, return values, lifecycle, and threading.
-3. Local `Help/*.chm` documentation for official guides, API reference pages,
+1. Public headers and header comments for exact API contracts, signatures,
+   parameters, return values, lifecycle, threading, and platform guards.
+2. Local `Help/*.chm` documentation for official guides, API reference pages,
    conceptual explanations, and website-equivalent SDK documentation.
-4. Shipped samples for intended integration patterns.
-5. The complete installed `source` tree for Wwise implementation behavior that
-   is not part of the public contract. This source package is available only to
-   users with the corresponding source access.
+3. Shipped samples for intended integration patterns.
+4. The complete installed `source` tree, only when needed, for Wwise
+   implementation behavior that is not part of the public contract. This source
+   package is available only to users with the corresponding source access.
+5. Other local content, such as the user's integration code or repository
+   documentation, followed only when necessary by clearly labeled inference.
 
 Treat source implementation details as version-specific and potentially
 unstable. Do not present them as public API guarantees unless headers or Help
-also establish the behavior.
+also establish the behavior. If evidence conflicts, report the discrepancy and
+use the selected SDK version's public headers for the exact compilable API.
 
 ## Searching Well
 
-- Start with an exact symbol, then broaden to related types or concepts.
+- Start with an exact symbol in SDK headers, then broaden to related types or
+  concepts.
+- After headers, search Help and samples before consulting source, project
+  files, or other content.
 - Search declarations and comments together.
 - Inspect overloads, default arguments, macros, typedefs, and platform guards.
 - Check callback type definitions and result enums referenced by a signature.
 - Search samples using both the API name and its associated feature name.
-- Search `Help` when headers do not provide enough context or the question is
-  about an integration workflow: `python scripts/wwise_sdk.py search QUERY
-  --area help`. The helper searches configured, manually extracted `help_roots`
-  first. It then temporarily extracts installed CHM files with Windows
+- Search `Help` after confirming the header contract: `python
+  scripts/wwise_sdk.py search QUERY --area help`. The helper searches
+  configured, manually extracted `help_roots` first. It then temporarily
+  extracts installed CHM files with Windows
   `hh.exe`, 7-Zip (`7z`, `7zz`, or `7za`), or chmlib's `extract_chmLib` when
   available. Temporary output is deleted after the search.
 - For maximum portability, manually extract each SDK version's CHM files into

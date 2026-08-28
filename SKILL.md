@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires a locally installed Wwise SDK and local file access. Python 3.9+ is optional.
 metadata:
   author: Miasol
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # Wwise SDK Reference
@@ -210,23 +210,34 @@ missing rather than reconstructing the page from memory.
 
 1. Run `info` or read `include/AK/AkWwiseSDKVersion.h`; state the inspected
    version when version differences matter.
-2. Search `include/AK` first for declarations, parameter docs, result codes,
-   ownership rules, thread restrictions, and deprecation notes.
-3. Read nearby declarations and comments, not just the matching line.
-4. Search `samples` for supported usage patterns.
-5. Search `Help` for the locally installed official SDK documentation
+2. Search `include/AK` first for declarations and nearby comments. Use headers
+   to confirm exact signatures, parameters, result codes, ownership rules,
+   thread restrictions, platform guards, and deprecation notes because they
+   define the public API contract that the selected SDK can compile against.
+3. Search `Help` for the locally installed official SDK documentation
    (`Help/*.chm` and localized variants such as `Help/zh/*.chm` on Windows)
    with `python scripts/wwise_sdk.py search QUERY --area help`. The helper first
    searches configured `help_roots`, then temporarily extracts installed CHM
    files with `hh.exe`, 7-Zip, or chmlib when available. Prefer the user's
    language when multiple localized files exist. See `references/research-guide.md`
-   for manual extraction and platform details.
-6. Search the `source` tree when implementation detail is necessary and the
-   directory exists. It is the Wwise implementation source package, installed
-   only for users with source access; never treat its absence as an invalid
-   SDK, and distinguish internal behavior from the public API contract.
+   for manual extraction and platform details. Use Help to add official
+   concepts, workflows, and explanations around the header contract.
+4. Search `samples` for supported integration and usage patterns. Examples
+   illustrate intended use but do not override declarations or Help.
+5. Search the SDK `source` tree only when implementation detail is necessary
+   and the directory exists. It is the Wwise implementation source package,
+   installed only for users with source access; never treat its absence as an
+   invalid SDK, and distinguish internal behavior from the public API contract.
+6. Only after the installed SDK documentation, consult other content such as
+   the user's integration code, repository documentation, or clearly labeled
+   inference. Never use general knowledge to replace missing local evidence.
 7. Compare multiple SDK roots explicitly for migration or compatibility
    questions. Never blend evidence from different versions.
+
+When evidence conflicts, report the discrepancy. For the exact API that can be
+compiled, the selected version's public headers take precedence; Help explains
+documented behavior, samples demonstrate usage, and source reveals only
+version-specific implementation details.
 
 Example searches:
 

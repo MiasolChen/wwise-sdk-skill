@@ -22,6 +22,29 @@ the official web documentation cannot be reliably accessed by automated agents.
 It activates only for Wwise-specific questions and stays out of the way for
 general game audio topics.
 
+## Documentation Lookup Order
+
+The Skill uses local evidence in this order:
+
+1. **SDK version and public headers (`include/AK`)**: establish which release is
+   being inspected and confirm the exact API contract that can be compiled,
+   including signatures, enums, defaults, ownership, and threading constraints.
+2. **Local SDK Help**: supplies official explanations, concepts, workflows, and
+   API-reference context around the declarations.
+3. **Shipped samples**: demonstrate intended integration patterns, but do not
+   override the headers or Help.
+4. **Installed `source`**: consulted only when implementation details are
+   necessary. Internal behavior is version-specific and is not a public API
+   guarantee.
+5. **Project files or other information**: used only after the installed SDK
+   evidence and clearly separated from confirmed SDK facts.
+
+This order matters because the selected version's headers are the definitive
+record of what that installation exposes to C++ code. Help is better suited to
+meaning and workflow, samples to practical usage, and source to internal
+behavior. If these sources disagree, the Skill reports the discrepancy and
+uses the installed public headers for the exact compilable API.
+
 ## Installation
 
 Clone the repository into a Skill directory supported by your AI tool:
