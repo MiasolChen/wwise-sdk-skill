@@ -239,7 +239,7 @@ python scripts/wwise_sdk.py resolve-url "https://www.audiokinetic.com/zh/public-
 
 ## 署名
 
-由 Miasol 设计，由 GPT 和 Claude 协助撰写。
+Skill 版本 1.1.0。由 Miasol 设计，由 GPT 和 Claude 协助撰写。
 
 ## 许可证
 

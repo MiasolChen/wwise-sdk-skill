@@ -257,7 +257,7 @@ python scripts/wwise_sdk.py resolve-url "https://www.audiokinetic.com/en/public-
 
 ## Credits
 
-Designed by Miasol. Written with GPT and Claude.
+Skill version 1.1.0. Designed by Miasol. Written with GPT and Claude.
 
 ## License
 

@@ -2,10 +2,6 @@
 name: wwise-sdk-skill
 description: Wwise SDK research, resolved against the user's locally installed SDK rather than the web. Fires on an `audiokinetic.com` `library` or `public-library` documentation URL, including a bare URL with no question; a Wwise, Audiokinetic, or WAAPI topic; an `AK`-prefixed symbol or a bare Sound Engine call such as PostEvent or LoadBank; a local Wwise SDK path, header, or CHM Help page. Not for general audio programming or other middleware unless Wwise is named.
 license: MIT
-compatibility: Requires a locally installed Wwise SDK and local file access. Python 3.9+ is optional.
-metadata:
-  author: Miasol
-  version: "1.1.0"
 ---
 
 # Wwise SDK Reference
@@ -15,6 +11,12 @@ Audiokinetic's website is never a route to an answer. Audiokinetic blocks
 automated access to it, and the local Help package holds the same pages. An API
 in one Wwise release is not an API in another, so the inspected installation
 decides.
+
+Commands below are written as bare subcommands. Each one runs as
+`python <skill>/scripts/wwise_sdk.py <subcommand>`, where `<skill>` is this
+skill's own directory, not the user's project. Use the absolute path whenever
+the working directory is elsewhere, and `python3` where `python` is absent. The
+helper is optional; without it, use the host's file tools in the same order.
 
 ## Order Of Operations
 
@@ -29,7 +31,7 @@ helper command resolves an SDK root before it does anything:
      `search` command it prints. See **Documentation URLs**.
    - Anything else Wwise-specific: see **Research Workflow**.
 3. **Answer from what the installed SDK showed**, citing
-   `relative/path:line`. See **Answer Requirements**.
+   `relative/path:line`. See **Answer Gate**.
 
 Run `check` when this is the user's first use, when they ask whether anything
 is missing, or when a lookup fails. See **Verifying The Installation**.
@@ -47,7 +49,8 @@ use, and leave the SDK closed.
 
 ## Resolve The SDK Root
 
-Resolve in this order:
+This skill needs a locally installed Wwise SDK and local file access; the
+Python helper is optional. Resolve in this order:
 
 1. A path explicitly supplied by the user.
 2. Paths listed in `wwise-sdk.config.json` in this skill's installation
@@ -55,7 +58,7 @@ Resolve in this order:
 3. The optional helper:
 
    ```sh
-   python scripts/wwise_sdk.py locate
+   locate
    ```
 
 4. Ask the user for the SDK path if discovery fails.
@@ -68,13 +71,8 @@ configuration, and the repository unless the user explicitly asks for one.
 To inspect a specific installation:
 
 ```sh
-python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
+--sdk-root "/path/to/SDK" info
 ```
-
-Helper paths such as `scripts/wwise_sdk.py` are relative to this skill's
-installation directory, not the user's project. Invoke the script with an
-absolute path when the working directory is elsewhere, and use `python3` when
-`python` is unavailable on the host.
 
 ### When No SDK Resolves
 
@@ -109,7 +107,7 @@ write "Wwise" or ask a question. Once the SDK root resolves, the offline route i
 the first and only attempt on the URL:
 
 ```sh
-python scripts/wwise_sdk.py resolve-url "URL"
+resolve-url "URL"
 ```
 
 `resolve-url` prints the local page and the ready-to-run `search` command that
@@ -140,13 +138,14 @@ user actually wants API or concept documentation, ask for the corresponding
 
 1. Run `info` or read `include/AK/AkWwiseSDKVersion.h`; state the inspected
    version when version differences matter.
-2. Search `include/AK` first for declarations and nearby comments. Use headers
-   to confirm exact signatures, parameters, result codes, ownership rules,
-   thread restrictions, platform guards, and deprecation notes because they
+2. Search `include/AK` first for declarations and nearby comments. Read every
+   signature and enum value out of these headers rather than recalling them,
+   confirming parameters, result codes, ownership rules, thread restrictions,
+   platform guards, and deprecation notes, because they
    define the public API contract that the selected SDK can compile against.
 3. Search `Help` for the locally installed official SDK documentation
    (`Help/*.chm` and localized variants such as `Help/zh/*.chm` on Windows)
-   with `python scripts/wwise_sdk.py search "QUERY" --area help --fixed`. The
+   with `search "QUERY" --area help --fixed`. The
    helper first searches configured `help_roots`, then temporarily extracts
    installed CHM files with `hh.exe`, 7-Zip, or chmlib when available. Prefer
    the user's language when multiple localized files exist. See
@@ -169,6 +168,13 @@ When evidence conflicts, report the discrepancy. For the exact API that can be
 compiled, the selected version's public headers take precedence; Help explains
 documented behavior, samples demonstrate usage, and source reveals only
 version-specific implementation details.
+
+The research is done when every claim in the answer carries a
+`relative/path:line` citation from the inspected installation, every overload
+and enum member the question touches is accounted for, and every unavailable
+package is named. An uncited claim is an unfinished step, not a caveat. Work
+through `references/research-guide.md`'s answer quality checklist before
+answering.
 
 ### Using `search` Correctly
 
@@ -199,42 +205,30 @@ nothing, which is a claim about the search, not about Wwise.
 Example searches:
 
 ```sh
-python scripts/wwise_sdk.py search "PostEvent" --area include --fixed --context 4
-python scripts/wwise_sdk.py search "AK::SoundEngine::RegisterGameObj" --area include --fixed
-python scripts/wwise_sdk.py search "AK_InvalidParameter" --area include --fixed
-python scripts/wwise_sdk.py search "PostEvent" --area help --fixed --ignore-case
-python scripts/wwise_sdk.py search "CAkSoundEngine" --area source --fixed --glob "*.cpp"
-python scripts/wwise_sdk.py search "Set(RTPCValue|State|Switch)" --area include --max-results 60
+search "PostEvent" --area include --fixed --context 4
+search "AK::SoundEngine::RegisterGameObj" --area include --fixed
+search "AK_InvalidParameter" --area include --fixed
+search "PostEvent" --area help --fixed --ignore-case
+search "CAkSoundEngine" --area source --fixed --glob "*.cpp"
+search "Set(RTPCValue|State|Switch)" --area include --max-results 60
 ```
 
 If the helper is unavailable, use the host's normal file search tools with the
 same search order. See `references/topic-map.md` for likely entry points, and
 `references/research-guide.md` for evidence and citation guidance.
 
-## Answer Requirements
-
-- Read every signature and enum value out of the installed headers.
-- Cite evidence as `relative/path:line` or `relative/path:start-end` so the
-  result remains useful on another machine.
-- Separate facts found in the SDK from recommendations or inference.
-- Include a minimal usage example when it helps, adapted to the inspected SDK
-  version rather than copied blindly from a different release.
-- Mention lifecycle, ownership, threading, callback, and return-value concerns
-  when the local comments make them relevant.
-- If evidence is missing or ambiguous, say what was searched and what could
-  not be confirmed.
-- Keep usernames, absolute home paths, license keys, project secrets, and
-  unrelated local files out of the answer.
-
-## Response Shape
+## Answer Gate
 
 Prefer this compact structure:
 
 1. Direct answer.
 2. Confirmed signature or behavior.
-3. Minimal example, if useful.
+3. Minimal example, if useful, adapted to the inspected version.
 4. Version and local citations.
-5. Caveats or unresolved points.
+5. Caveats, uncertainties, and absent packages.
+
+`references/research-guide.md` holds the answer quality checklist and the
+citation format. Both are the gate the completion criterion above refers to.
 
 ## Verifying The Installation
 
@@ -242,7 +236,7 @@ Run the check on first use, when the user asks whether anything is missing, or
 when a lookup fails:
 
 ```sh
-python scripts/wwise_sdk.py check
+check
 ```
 
 Report the detected SDK and version, which packages are installed, whether a
@@ -269,7 +263,7 @@ If the user wants faster or repeated Help access, or the host has no CHM
 extractor at query time, extract the CHM once and register the output:
 
 ```sh
-python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
+extract-help "/path/to/HelpExtracted" --language zh
 ```
 
 This writes the directory into `help_roots` so the extracted HTML can be read
@@ -288,6 +282,8 @@ use a separate directory per SDK version, outside this skill's repository. Use
   and `wget` out of the route even when they are available.
 - Treat non-documentation Audiokinetic pages (community, blog, product, pricing)
   as ordinary web links with no local counterpart.
+- Keep usernames, absolute home paths, license keys, project secrets, and
+  unrelated local files out of the answer.
 - Do not copy or publish Wwise SDK headers, libraries, samples, Help files, or
   other proprietary files. Quote only the small fragment needed to explain an
   API, and direct the user to their local installation.

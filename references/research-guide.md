@@ -1,5 +1,8 @@
 # Research And Citation Guide
 
+Commands here are bare subcommands of the helper, run as
+`python <skill>/scripts/wwise_sdk.py <subcommand>`. See `SKILL.md`.
+
 ## Evidence Priority
 
 Use the installed SDK evidence in this order:
@@ -30,8 +33,8 @@ use the selected SDK version's public headers for the exact compilable API.
 - Inspect overloads, default arguments, macros, typedefs, and platform guards.
 - Check callback type definitions and result enums referenced by a signature.
 - Search samples using both the API name and its associated feature name.
-- Search `Help` after confirming the header contract: `python
-  scripts/wwise_sdk.py search "QUERY" --area help --fixed`. The helper searches
+- Search `Help` after confirming the header contract:
+  `search "QUERY" --area help --fixed`. The helper searches
   configured, manually extracted `help_roots` first. It then temporarily
   extracts installed CHM files with Windows
   `hh.exe`, 7-Zip (`7z`, `7zz`, or `7za`), or chmlib's `extract_chmLib` when
@@ -51,8 +54,8 @@ use the selected SDK version's public headers for the exact compilable API.
 
 ## Setup Verification
 
-Run `python scripts/wwise_sdk.py check` on first use, when the user asks whether
-documentation is missing, or when a Help lookup fails. It reports the SDK
+Run `check` on first use, when the user asks whether documentation is missing,
+or when a Help lookup fails. It reports the SDK
 version, installed packages, SDK Help CHM files, Authoring Help languages, CHM
 extractor availability, and invalid `help_roots` entries, then exits non-zero
 when something is missing.
@@ -67,7 +70,7 @@ implementation detail, and an absent extractor requires a pre-extracted
 To make Help lookups persistent, extract once and register the output:
 
 ```sh
-python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
+extract-help "/path/to/HelpExtracted" --language zh
 ```
 
 Use one directory per SDK version, keep it outside this repository, and rely on
@@ -78,7 +81,7 @@ Use one directory per SDK version, keep it outside this repository, and rely on
 Resolve a provided documentation URL to its local page:
 
 ```sh
-python scripts/wwise_sdk.py resolve-url "URL"
+resolve-url "URL"
 ```
 
 Mapping rules:
@@ -101,7 +104,7 @@ are stored as plain HTML under `Authoring/Help/Contextual Help/<language>/`, or
 in directories listed in `help_roots`. Read a resolved CHM page with a glob:
 
 ```sh
-python scripts/wwise_sdk.py search "QUERY" --area help --fixed --glob "soundengine_events.html"
+search "QUERY" --area help --fixed --glob "soundengine_events.html"
 ```
 
 Cite resolved pages as `Help/zh/WwiseSDK-Windows.chm!/soundengine_events.html`.
