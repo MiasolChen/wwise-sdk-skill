@@ -75,8 +75,7 @@ Use one directory per SDK version, keep it outside this repository, and rely on
 
 ## Official Documentation URLs
 
-Never fetch `audiokinetic.com`. Resolve a provided documentation URL to its
-local page:
+Resolve a provided documentation URL to its local page:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"

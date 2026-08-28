@@ -8,20 +8,18 @@ the user also names Wwise.
 
 An Audiokinetic **documentation** URL is an unconditional Wwise signal, even
 when the user's entire message is only the URL. A URL qualifies when the host is
-`audiokinetic.com` or one of its subdomains **and** the path contains a
-documentation segment:
+`audiokinetic.com` or one of its subdomains **and** the path contains
+`library` or `public-library`:
 
 - `https://www.audiokinetic.com/zh/public-library/2025.1.10_9233/?source=SDK&id=soundengine_events`
 - `https://www.audiokinetic.com/library/edge/?source=SDK&id=soundengine_events`
 
-Load this skill and run the local `resolve-url` workflow. Never send the URL to
-`webfetch`, web search, a browser, `curl`, or `wget`.
-
 Other paths on the same host are not documentation and have no local
 counterpart: `/community/` (Q&A, blog, forum), `/products/`, `/pricing/`,
 `/news/`, `/events/`, `/courses/`, and marketing pages. These are not a trigger.
-`resolve-url` rejects them; say the link is not documentation instead of
-answering it from local Help content.
+
+For how such a URL is resolved, see the **Documentation URLs** section of
+`SKILL.md`.
 
 ## Product And Tooling Names
 

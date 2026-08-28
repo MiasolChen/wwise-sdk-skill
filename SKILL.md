@@ -10,8 +10,11 @@ metadata:
 
 # Wwise SDK Reference
 
-Use the user's installed Wwise SDK as the source of truth. Do not assume that
-an API from one Wwise release exists or has the same signature in another.
+This skill is **offline**: the installed SDK is the source of truth, and
+Audiokinetic's website is never a route to an answer. Audiokinetic blocks
+automated access to it, and the local Help package holds the same pages. An API
+in one Wwise release is not an API in another, so the inspected installation
+decides.
 
 ## Order Of Operations
 
@@ -24,7 +27,7 @@ helper command resolves an SDK root before it does anything:
    **Locate The SDK**.
 2. **Route on what the request carries.**
    - An Audiokinetic documentation URL: run `resolve-url`, then run the
-     `search` command it prints. See **Mandatory URL Routing**.
+     `search` command it prints. See **Documentation URLs**.
    - Anything else Wwise-specific: see **Research Workflow**.
 3. **Answer from what the installed SDK showed**, citing
    `relative/path:line`. See **Answer Requirements**.
@@ -32,37 +35,34 @@ helper command resolves an SDK root before it does anything:
 Run `check` when this is the user's first use, when they ask whether anything
 is missing, or when a lookup fails.
 
-## Mandatory URL Routing
+## Documentation URLs
 
-Only Audiokinetic **documentation** URLs route to this workflow. A URL qualifies
-when its host is `audiokinetic.com` or a subdomain such as `www.audiokinetic.com`
-**and** its path contains a documentation segment:
+An Audiokinetic **documentation** URL resolves offline. A URL qualifies when its
+host is `audiokinetic.com` or a subdomain such as `www.audiokinetic.com` **and**
+its path contains `library` or `public-library`:
 
 - `https://www.audiokinetic.com/zh/public-library/2025.1.10_9233/?source=SDK&id=...`
 - `https://www.audiokinetic.com/library/edge/?source=SDK&id=...`
 
 Such a URL alone is enough to activate this skill; the user does not also need to
-write "Wwise" or ask a question. Once the SDK root resolves, local resolution is
-the first action taken on the URL:
+write "Wwise" or ask a question. Once the SDK root resolves, the offline route is
+the first and only attempt on the URL:
 
 ```sh
 python scripts/wwise_sdk.py resolve-url "URL"
 ```
 
-`resolve-url` needs a resolved SDK root, so a missing root surfaces here as a
-configuration problem, not as a reason to fetch the page. Ask for the SDK path
-and stop.
+`resolve-url` prints the local page and the ready-to-run `search` command that
+reads it. Run that command. `resolve-url` needs a resolved SDK root, so a
+missing root surfaces here as a configuration problem; ask for the SDK path and
+stop.
 
-Do not call `webfetch`, a web-search tool, `curl`, `wget`, a browser tool, or
-any other network retrieval method for that URL, even if one is available.
-Do not try the website first and fall back to local content only after it
-fails. `resolve-url` and the installed SDK Help are the primary route.
+When resolution finds no local page, report which Help package is missing along
+with the version information the URL yielded. That report is the answer; the
+page stays unquoted rather than reconstructed.
 
-After resolving the URL, `resolve-url` prints the exact `search` command for the
-matching local page. Run that command to read the page. If local resolution
-fails, report the missing local SDK or Help package and the URL/version
-information that could be parsed. Do not fetch the website as a fallback and do
-not reconstruct its content from memory.
+For the URL-to-page mapping rules (`id`, language, version, and `source`
+segments), see `references/research-guide.md`.
 
 ### Non-Documentation Audiokinetic URLs
 
@@ -71,11 +71,10 @@ counterpart: `/community/` (including Q&A, blog, and forum pages), `/products/`,
 `/pricing/`, `/news/`, `/events/`, `/courses/`, and marketing pages.
 `resolve-url` rejects these paths on purpose.
 
-For such a URL, do not run `resolve-url` and do not invent local evidence. Say
-that the link is not documentation, so this skill cannot resolve it locally, and
-handle it with the host's normal rules for web links. If the user actually wants
-API or concept documentation, ask for the corresponding `library` or
-`public-library` link, or search the installed SDK by topic instead.
+For such a URL, say that the link is not documentation, so this skill cannot
+resolve it locally, and hand it to the host's normal rules for web links. If the
+user actually wants API or concept documentation, ask for the corresponding
+`library` or `public-library` link, or search the installed SDK by topic.
 
 
 ## When To Use This Skill
@@ -93,7 +92,7 @@ signal:
 - A local Wwise SDK path, header, or `Help/*.chm` page.
 - An Audiokinetic documentation URL, that is an `audiokinetic.com` link whose
   path contains `library` or `public-library`. A bare URL is sufficient and
-  always routes to the local SDK workflow in **Mandatory URL Routing**. Other
+  always routes to the local SDK workflow in **Documentation URLs**. Other
   `audiokinetic.com` paths, such as `/community/` or `/blog/`, are not
   documentation and are not a trigger.
 
@@ -132,13 +131,8 @@ If no local SDK can be found, tell the user to open Wwise Launcher, install or
 modify the desired Wwise version, and include its SDK component. Then ask them
 to copy `wwise-sdk.config.example.json` to `wwise-sdk.config.json` and add the
 installed SDK path to its `sdk_roots` array. That copy is git-ignored, so it
-keeps machine-specific paths out of version control. Do not proceed by
-guessing API details from memory.
-
-Audiokinetic does not permit automated bot searches or scraping of its
-web-based Wwise SDK documentation and uses bot-detection measures. This skill
-exists so agents can research the installed SDK locally instead of attempting
-to search the official documentation website.
+keeps machine-specific paths out of version control. Every API detail in the
+answer comes from that installation once it resolves.
 
 ## First Use: Check For Missing Documentation
 
@@ -150,8 +144,8 @@ python scripts/wwise_sdk.py check
 ```
 
 Report the detected SDK and version, which packages are installed, whether a
-CHM extractor exists, and any gap the command lists. Ask the user to install
-missing packages through Wwise Launcher rather than answering from memory.
+CHM extractor exists, and any gap the command lists. Point the user at Wwise
+Launcher to install the missing packages.
 
 A missing package is a capability limit, not a failure. Continue working with
 what is installed and state plainly which kind of evidence is unavailable:
@@ -164,8 +158,8 @@ what is installed and state plainly which kind of evidence is unavailable:
 - No `source`: no implementation detail; the public API contract is unaffected.
 - No CHM extractor: Help search requires a pre-extracted `help_roots` directory.
 
-Do not tell the user that the skill is broken or unusable because of these gaps,
-and do not fill them in from memory.
+The skill still works with gaps. Answers stay offline: name the absent package
+as the limit of the answer.
 
 ## Persistently Extracting CHM Help
 
@@ -177,10 +171,9 @@ python scripts/wwise_sdk.py extract-help "/path/to/HelpExtracted" --language zh
 ```
 
 This writes the directory into `help_roots` so the extracted HTML can be read
-with normal file tools afterwards. Ask the user where to place the output, use a
-separate directory per SDK version, and never place it inside this skill's
-repository. Use `--no-config` when the user does not want the configuration
-changed.
+with normal file tools afterwards. Ask the user where to place the output, and
+use a separate directory per SDK version, outside this skill's repository. Use
+`--no-config` when the user does not want the configuration changed.
 
 ## Locate The SDK
 
@@ -201,13 +194,14 @@ The user must fill in the configuration file manually, copying
 `wwise-sdk.config.example.json` to `wwise-sdk.config.json` first. Its
 `sdk_roots` array
 accepts SDK directories, Wwise installation directories containing `SDK`, or
-parent directories containing multiple Wwise installations. Do not use an
-environment variable for the SDK path.
+parent directories containing multiple Wwise installations. The configuration
+file is the only place the SDK path comes from; environment variables are not
+read.
 
 The optional `help_roots` array contains user-managed directories where CHM
 files have already been extracted. Search those directories directly when the
 question needs Help content. Keep each extracted directory associated with the
-matching SDK version and never combine evidence from different releases.
+matching SDK version, and label every finding with the version it came from.
 
 Helper paths such as `scripts/wwise_sdk.py` are relative to this skill's
 installation directory, not the user's project. Invoke the script with an
@@ -216,55 +210,15 @@ absolute path when the working directory is elsewhere, and use `python3` when
 
 Accept either the SDK directory itself or a Wwise installation directory that
 contains `SDK`. Validate it by checking for
-`include/AK/AkWwiseSDKVersion.h`. Never write a machine-specific path into an
-answer, configuration, or repository unless the user explicitly requests it.
+`include/AK/AkWwiseSDKVersion.h`. Cite SDK-relative paths only, so a
+machine-specific path stays out of answers, configuration, and the repository
+unless the user explicitly asks for one.
 
 To inspect a specific installation:
 
 ```sh
 python scripts/wwise_sdk.py --sdk-root "/path/to/SDK" info
 ```
-
-## Official Documentation URLs
-
-When the user provides an Audiokinetic documentation URL, including a bare link
-with no surrounding request, do not fetch it. The site blocks automated access.
-Map it to the local page instead:
-
-```sh
-python scripts/wwise_sdk.py resolve-url "URL"
-```
-
-The URL carries everything needed for the mapping:
-
-- The path must contain `library` or `public-library`; other paths are not
-  documentation and are rejected.
-- `id` is the local HTML file name, for example `id=soundengine_events` maps to
-  `soundengine_events.html`.
-- The path language segment (`en`, `zh`, `ja`, `ko`) selects the localized Help.
-- The version segment such as `2025.1.10_9233` is the documented version. Report
-  a mismatch with the local SDK instead of assuming the content is identical.
-  `library/edge` has no version segment, so compare nothing and state that the
-  link targets the latest online documentation.
-- `source` distinguishes SDK documentation from Authoring documentation.
-
-SDK pages live inside `SDK/Help/**/WwiseSDK-Windows.chm`. Authoring pages live
-under `Authoring/Help/Contextual Help/<language>/` or in extracted directories
-listed in `help_roots`. `resolve-url` prints the ready-to-run command for the
-page it resolved; it has the shape:
-
-```sh
-python scripts/wwise_sdk.py search "QUERY" --area help --fixed --glob "soundengine_events.html"
-```
-
-If the page is not installed locally, say so and state which Help package is
-missing rather than reconstructing the page from memory.
-
-If `resolve-url` reports that the link is not a documentation URL, the link
-points at other website content such as `/community/` or `/blog/`. There is no
-local equivalent, so do not substitute one. See **Non-Documentation
-Audiokinetic URLs** above.
-
 
 ## Research Workflow
 
@@ -287,13 +241,13 @@ Audiokinetic URLs** above.
    illustrate intended use but do not override declarations or Help.
 5. Search the SDK `source` tree only when implementation detail is necessary
    and the directory exists. It is the Wwise implementation source package,
-   installed only for users with source access; never treat its absence as an
-   invalid SDK, and distinguish internal behavior from the public API contract.
+   installed only for users with source access; its absence still leaves a valid
+   SDK, and internal behavior stays distinct from the public API contract.
 6. Only after the installed SDK documentation, consult other content such as
    the user's integration code, repository documentation, or clearly labeled
-   inference. Never use general knowledge to replace missing local evidence.
+   inference. Where local evidence is missing, say so and stop there.
 7. Compare multiple SDK roots explicitly for migration or compatibility
-   questions. Never blend evidence from different versions.
+   questions, labelling every finding with the version it came from.
 
 When evidence conflicts, report the discrepancy. For the exact API that can be
 compiled, the selected version's public headers take precedence; Help explains
@@ -344,8 +298,7 @@ and `references/research-guide.md` for evidence and citation guidance.
 
 ## Answer Requirements
 
-- Confirm exact signatures and enum values from the installed headers. Never
-  reconstruct them from memory.
+- Read every signature and enum value out of the installed headers.
 - Cite evidence as `relative/path:line` or `relative/path:start-end` so the
   result remains useful on another machine.
 - Separate facts found in the SDK from recommendations or inference.
@@ -355,27 +308,27 @@ and `references/research-guide.md` for evidence and citation guidance.
   when the local comments make them relevant.
 - If evidence is missing or ambiguous, say what was searched and what could
   not be confirmed.
-- Do not expose usernames, absolute home paths, license keys, project secrets,
-  or unrelated local files.
+- Keep usernames, absolute home paths, license keys, project secrets, and
+  unrelated local files out of the answer.
 
 ## Boundaries
 
-- Do not activate for general game audio, audio programming, or non-Wwise
-  middleware questions. See the activation rules above and
-  `references/trigger-terms.md`.
-- Do not search, scrape, or fetch Audiokinetic's web-based SDK documentation.
-  The site uses bot detection and does not permit automated bot access. Explain
-  this restriction and use the local SDK instead.
-- Do not treat non-documentation Audiokinetic pages, such as community, blog,
-  product, or pricing pages, as SDK documentation, and do not answer them from
-  local Help content.
+- Keep this skill to Wwise. General game audio, audio programming, and
+  non-Wwise middleware are answered normally, without opening the SDK. See the
+  activation rules above and `references/trigger-terms.md`.
+- Answer documentation questions offline, from the installed Help package. When
+  a page is absent, name the missing package. Audiokinetic's site is not a
+  fallback for any of it, so leave `webfetch`, web search, a browser, `curl`,
+  and `wget` out of the route even when they are available.
+- Treat non-documentation Audiokinetic pages (community, blog, product, pricing)
+  as ordinary web links with no local counterpart.
 - Do not copy or publish Wwise SDK headers, libraries, samples, Help files, or
   other proprietary files. Quote only the small fragment needed to explain an
-  API and direct the user to their local installation.
-- CHM extraction must be temporary and used only for local research. Do not
-  retain, index in the repository, or redistribute the extracted HTML.
-- Do not claim that this skill or its MIT license applies to Wwise. Wwise and
-  its SDK remain subject to Audiokinetic's terms.
+  API, and direct the user to their local installation.
+- Keep CHM extraction temporary and local to research. Do not retain, index in
+  the repository, or redistribute the extracted HTML.
+- Wwise and its SDK remain subject to Audiokinetic's terms; this skill's MIT
+  license covers only the skill itself.
 
 ## Response Shape
 
